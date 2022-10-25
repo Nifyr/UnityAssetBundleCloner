@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AssetsTools.NET" Version="2.0.12" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="AssetAssistant">
+      <HintPath>..\..\AssetAssistant\AssetAssistant\bin\Release\AssetAssistant.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
