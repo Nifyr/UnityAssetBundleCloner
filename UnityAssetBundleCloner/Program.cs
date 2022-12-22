@@ -19,6 +19,7 @@ namespace UnityAssetBundleCloner
             ApplicationConfiguration.Initialize();
 
             string outputDir = Environment.CurrentDirectory + "\\Output";
+            string tempDir = Environment.CurrentDirectory + "\\Temp";
             Dictionary<string, string> cabNames = new();
             Dictionary<string, string> assetBundleNames = new();
             Random rng = new();
@@ -121,13 +122,28 @@ namespace UnityAssetBundleCloner
                 afi.file.Write(afw, 0, ars, 0);
                 BundleReplacerFromMemory brfm = new(bfi.file.bundleInf6.dirInf[0].name, "CAB-" + cabNames[oldCAB], true, memoryStream.ToArray(), -1);
 
-                string assetBundlePath = outputDir + "\\" + newRecord.projectName + "\\" + newRecord.assetBundleName;
-                Directory.CreateDirectory(Path.GetDirectoryName(assetBundlePath) ?? throw new ArgumentException("Not a path."));
-                afw = new(File.OpenWrite(assetBundlePath));
+                string tempAssetBundlePath = tempDir + "\\" + newRecord.projectName + "\\" + newRecord.assetBundleName;
+                string outputAssetBundlePath = outputDir + "\\" + newRecord.projectName + "\\" + newRecord.assetBundleName;
+                Directory.CreateDirectory(Path.GetDirectoryName(tempAssetBundlePath) ?? throw new ArgumentException("Not a path."));
+                Directory.CreateDirectory(Path.GetDirectoryName(outputAssetBundlePath) ?? throw new ArgumentException("Not a path."));
+                afw = new(File.OpenWrite(tempAssetBundlePath));
                 bfi.file.Write(afw, new List<BundleReplacer> { brfm });
+                afw.Close();
+                am = new();
+                bfi = am.LoadBundleFile(tempAssetBundlePath, false);
+                if (File.Exists(outputAssetBundlePath))
+                    File.Delete(outputAssetBundlePath);
+                FileStream stream = File.OpenWrite(outputAssetBundlePath);
+                afw = new AssetsFileWriter(stream);
+                bfi.file.Pack(bfi.file.reader, afw, AssetBundleCompressionType.LZ4);
+                afw.Close();
+                bfi.file.Close();
+                bfi.BundleStream.Dispose();
+                File.Delete(tempAssetBundlePath);
             }
 
             abdm.Save(outputDir + "\\" + Path.GetFileName(assetAssistantPath));
+            MessageBox.Show("Result placed in Output folder.", "Success!", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private static string IncrementName(string s)
